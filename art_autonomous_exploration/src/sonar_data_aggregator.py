@@ -3,6 +3,7 @@
 import rospy
 from sensor_msgs.msg import Range
 
+
 # Class for reading the data from sensors
 class SonarDataAggregator:
 
@@ -17,19 +18,23 @@ class SonarDataAggregator:
         self.sonar_rear_right_range = 0
 
         # ROS Subscribers to the robot's sonars
-        rospy.Subscriber(rospy.get_param('sonar_front_topic'), Range, \
-                self.getDataSonarFront) 
-        rospy.Subscriber(rospy.get_param('sonar_left_topic'), Range, \
-                self.getDataSonarLeft) 
-        rospy.Subscriber(rospy.get_param('sonar_right_topic'), Range, \
-                self.getDataSonarRight) 
-        rospy.Subscriber(rospy.get_param('sonar_rear_left_topic'), Range, \
-                self.getDataSonarRearLeft) 
-        rospy.Subscriber(rospy.get_param('sonar_rear_right_topic'), Range, \
-                self.getDataSonarRearRight) 
+        rospy.Subscriber(rospy.get_param('sonar_front_topic'), Range,
+                         self.getDataSonarFront)
+        rospy.Subscriber(rospy.get_param('sonar_left_topic'), Range,
+                         self.getDataSonarLeft)
+        rospy.Subscriber(rospy.get_param('sonar_right_topic'), Range,
+                         self.getDataSonarRight)
+        rospy.Subscriber(rospy.get_param('sonar_rear_left_topic'), Range,
+                         self.getDataSonarRearLeft)
+        rospy.Subscriber(rospy.get_param('sonar_rear_right_topic'), Range,
+                         self.getDataSonarRearRight)
 
-    # Getting data from the front sonar
     def getDataSonarFront(self, data):
+        """
+        Getting data from the front sonar
+        :param data:
+        :return:
+        """
         if data.range == float('Inf'):
             self.sonar_front_range = data.max_range
         elif data.range == -float('Inf'):
@@ -37,8 +42,12 @@ class SonarDataAggregator:
         else:
             self.sonar_front_range = data.range
 
-    # Getting data from the left sonar
     def getDataSonarLeft(self, data):
+        """
+        Getting data from the left sonar
+        :param data:
+        :return:
+        """
         if data.range == float('Inf'):
             self.sonar_left_range = data.max_range
         elif data.range == -float('Inf'):
@@ -46,8 +55,12 @@ class SonarDataAggregator:
         else:
             self.sonar_left_range = data.range
 
-    # Getting data from the right sonar
     def getDataSonarRight(self, data):
+        """
+        Getting data from the right sonar
+        :param data:
+        :return:
+        """
         if data.range == float('Inf'):
             self.sonar_right_range = data.max_range
         elif data.range == -float('Inf'):
@@ -55,8 +68,12 @@ class SonarDataAggregator:
         else:
             self.sonar_right_range = data.range
 
-    # Getting data from the rear left sonar
     def getDataSonarRearLeft(self, data):
+        """
+        Getting data from the rear left sonar
+        :param data:
+        :return:
+        """
         if data.range == float('Inf'):
             self.sonar_rear_left_range = data.max_range
         elif data.range == -float('Inf'):
@@ -64,8 +81,12 @@ class SonarDataAggregator:
         else:
             self.sonar_rear_left_range = data.range
 
-    # Getting data from the rear right sonar
     def getDataSonarRearRight(self, data):
+        """
+        Getting data from the rear right sonar
+        :param data:
+        :return: void
+        """
         if data.range == float('Inf'):
             self.sonar_rear_right_range = data.max_range
         elif data.range == -float('Inf'):

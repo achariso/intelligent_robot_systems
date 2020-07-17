@@ -48,7 +48,7 @@ class PathPlanning:
 
         path = []
         for p in resp.path.poses:
-            path.append([p.pose.position.x / resolution, \
+            path.append([p.pose.position.x / resolution,
                 p.pose.position.y / resolution])
 
         return path
