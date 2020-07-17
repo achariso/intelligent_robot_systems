@@ -1,0 +1,5 @@
+.vagrant
+*/_*.c
+*/_*.o
+*/_*.cpp
+/.vagrant/
