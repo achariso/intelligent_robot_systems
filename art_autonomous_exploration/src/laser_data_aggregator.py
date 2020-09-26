@@ -6,7 +6,7 @@ from sensor_msgs.msg import LaserScan
 from math import radians, degrees, floor
 from threading import Thread, Lock
 
-PROCESS_IN_PARALLEL = True
+PROCESS_IN_PARALLEL = False
 
 
 # Class for reading the data from the laser sensor
@@ -92,6 +92,9 @@ class LaserDataAggregator:
         self.LASER_SCAN_LEFT_SIDE_SUM = 0
         self.LASER_SCAN_RIGHT_SIDE_SUM = 0
 
+        # Flip (reverse) scan
+        self.laser_scan.reverse()
+
         # Process laser data
         #  - assign/update region states
         if PROCESS_IN_PARALLEL:
@@ -145,7 +148,7 @@ class LaserDataAggregator:
 
         laser_scan_region = self.getScanForAngleDegRange(region_bounds_deg[0], region_bounds_deg[1])
         laser_scan_region_min = min(laser_scan_region)
-        laser_scan_region_sum = min(laser_scan_region)
+        laser_scan_region_sum = sum(laser_scan_region)
         self.LASER_SCAN_REGIONS[region_label]['min'] = laser_scan_region_min
         self.LASER_SCAN_REGIONS[region_label]['sum'] = laser_scan_region_sum
 
@@ -191,23 +194,23 @@ class LaserDataAggregator:
         # if self.LASER_SCAN_MIN < self.DISTANCE_OA and self.LASER_SCAN_REGION_WITH_MIN in ['FPL', 'FPR']:
         #     return 1
         #
-        # if self.LASER_SCAN_MIN < self.DISTANCE_OA and self.LASER_SCAN_REGION_WITH_MIN in ['FCL', 'FCR']:
+        # if self.LASER_SCAN_MIN < self.DISTANCE_OAH and self.LASER_SCAN_REGION_WITH_MIN in ['FCL', 'FCR']:
         #     return 0.5
         #
-        # if self.LASER_SCAN_MIN < self.DISTANCE_OAH and self.LASER_SCAN_REGION_WITH_MIN in ['SPL', 'SPR']:
+        # if self.LASER_SCAN_MIN < self.DISTANCE_OAH / 2 and self.LASER_SCAN_REGION_WITH_MIN in ['SPL', 'SPR']:
         #     return 0.2
 
-        if (self.LASER_SCAN_REGIONS['FPL']['min'] < self.DISTANCE_OA) or \
-                (self.LASER_SCAN_REGIONS['FPR']['min'] < self.DISTANCE_OA):
+        if self.LASER_SCAN_REGIONS['FPL']['min'] < self.DISTANCE_OAH or \
+                self.LASER_SCAN_REGIONS['FPR']['min'] < self.DISTANCE_OAH:
             return 1
 
-        # if (self.LASER_SCAN_REGIONS['FCL']['min'] < self.DISTANCE_OA) or \
-        #         (self.LASER_SCAN_REGIONS['FCR']['min'] < self.DISTANCE_OA):
-        #     return 0.2
-        #
-        # if (self.LASER_SCAN_REGIONS['SPL']['min'] < self.DISTANCE_OA) or \
-        #         (self.LASER_SCAN_REGIONS['SPR']['min'] < self.DISTANCE_OA):
-        #     return 0.1
+        if (self.LASER_SCAN_REGIONS['FCL']['min'] < self.DISTANCE_OA) or \
+                (self.LASER_SCAN_REGIONS['FCR']['min'] < self.DISTANCE_OA):
+            return 0.2
+
+        if (self.LASER_SCAN_REGIONS['SPL']['min'] < self.DISTANCE_OA) or \
+                (self.LASER_SCAN_REGIONS['SPR']['min'] < self.DISTANCE_OA):
+            return 0.1
 
         self.LAST_TURN_DIRECTION = None
         return 0
@@ -222,4 +225,5 @@ class LaserDataAggregator:
 
         turn_dir = self.getTurnDirection() if self.LAST_TURN_DIRECTION is None else self.LAST_TURN_DIRECTION
         turn_force = self.getTurnForce()
+
         return turn_dir * turn_force

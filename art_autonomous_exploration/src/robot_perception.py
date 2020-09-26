@@ -50,13 +50,13 @@ class RobotPerception:
 
         # Origin is the translation between the (0,0) of the robot pose and the
         # (0,0) of the map
-        self.origin = {'x': 0, 'y': 0}  # in meter units
-        self.origin_px = [0, 0]  # in pixel units
+        self.origin = {'x': 0., 'y': 0.}  # in meter units
+        self.origin_px = [0., 0.]  # in pixel units
 
         # Initialization of robot pose
         # x,y are in meters
         # x_px, y_px are in pixels
-        self.robot_pose = {'x': 0, 'y': 0, 'th': 0, 'x_px': 0, 'y_px': 0}
+        self.robot_pose = {'x': 0., 'y': 0., 'th': 0., 'x_px': 0., 'y_px': 0.}
 
         self.coverage_ogm = OccupancyGrid()
         self.coverage_ogm.header.frame_id = "map"
@@ -284,8 +284,8 @@ class RobotPerception:
         :return: v_m
         """
         return [
-            int((v_p['x'] if xy_labels else v_p[0]) * self.resolution),
-            int((v_p['y'] if xy_labels else v_p[1]) * self.resolution)
+            float((v_p['x'] if xy_labels else v_p[0]) * self.resolution),
+            float((v_p['y'] if xy_labels else v_p[1]) * self.resolution)
         ]
 
     def toGlobalCoordinates(self, p, with_resolution=True):

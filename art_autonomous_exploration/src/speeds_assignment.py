@@ -52,6 +52,10 @@ class RobotController:
             rospy.get_param('speeds_pub_topic'), Twist,
             queue_size=10)
 
+        # Obstacle Avoidance state
+        self.obstacle_avoidance__active = False
+        self.obstacle_avoidance__remaining_steps = 20
+
     # This function publishes the speeds and moves the robot
     def publishSpeeds(self, event):
 
@@ -143,11 +147,22 @@ class RobotController:
             # You must combine the two sets of speeds. You can use motor schema,
             # subsumption of whatever suits your better.
 
-            if l_laser == 0:
+            if l_laser == 0 or self.obstacle_avoidance__active:
+                # Enter obstacle avoidance mode
+                if not self.obstacle_avoidance__active:
+                    self.obstacle_avoidance__active = True
+
                 # Hand-break must be done now
                 # ---> Subsumes Path Following <---
                 self.linear_velocity = self.LINEAR_VELOCITY_MAX * l_laser
                 self.angular_velocity = self.ANGULAR_VELOCITY_MAX * a_laser
+
+                # Keep obstacle avoidance active (since initiated after hand-break)
+                if self.obstacle_avoidance__remaining_steps == 0:
+                    self.obstacle_avoidance__active = False
+                    self.obstacle_avoidance__remaining_steps = 20
+                else:
+                    self.obstacle_avoidance__remaining_steps -= 1
             else:
                 self.linear_velocity = self.LINEAR_VELOCITY_MAX * l_goal
                 self.angular_velocity = self.ANGULAR_VELOCITY_MAX * a_goal

@@ -43,7 +43,7 @@ class Navigation:
         # Container for the next subtarget. Holds the index of the next subtarget
         self.next_subtarget = 0
 
-        self.count_limit = 200  # 20 sec
+        self.count_limit = 500  # 20 sec
 
         self.counter_to_next_sub = self.count_limit
 
@@ -64,10 +64,22 @@ class Navigation:
         # ROS Publisher for the current target
         self.current_target_publisher = rospy.Publisher(rospy.get_param('curr_target_pub_topic'), Marker, queue_size=10)
 
+        self.previous_next_subtarget = None
+
     def checkTarget(self, event):
+        """
+        Check if target/sub-target reached.
+        :param event:
+        :return:
+        """
+        if self.previous_next_subtarget is None or self.previous_next_subtarget < self.next_subtarget:
+            Print.art_print("next_subtarget = %d" % self.next_subtarget, Print.ORANGE)
+            self.previous_next_subtarget = self.next_subtarget
+
         # Check if we have a target or if the robot just wanders
-        if self.inner_target_exists == False or self.move_with_target == False or \
-                self.next_subtarget == len(self.subtargets):
+        if self.inner_target_exists == False \
+                or self.move_with_target == False \
+                or self.next_subtarget == len(self.subtargets):
             return
 
         self.counter_to_next_sub -= 1
@@ -83,17 +95,18 @@ class Navigation:
             self.robot_perception.robot_pose['x_px'],
             self.robot_perception.robot_pose['y_px']
         ]
-        rp_g_px = self.robot_perception.toGlobalCoordinates(rp_l_px)
-        # [rx, ry] = [
-        #     self.robot_perception.robot_pose['x_px'] - self.robot_perception.origin[
-        #         'x'] / self.robot_perception.resolution,
-        #     self.robot_perception.robot_pose['y_px'] - self.robot_perception.origin[
-        #         'y'] / self.robot_perception.resolution
-        # ]
+        # rp_g_px = self.robot_perception.toGlobalCoordinates(rp_l_px)
+        [rx, ry] = [
+            self.robot_perception.robot_pose['x_px'] - self.robot_perception.origin[
+                'x'] / self.robot_perception.resolution,
+            self.robot_perception.robot_pose['y_px'] - self.robot_perception.origin[
+                'y'] / self.robot_perception.resolution
+        ]
+        rp_g_px = [rx, ry]
 
         # Find the distance between the robot pose and the next subtarget
-        # v_g_px = map(operator.sub, rp_g_px, self.subtargets[self.next_subtarget])
-        # dist = math.hypot(v_g_px[0], v_g_px[1])
+        v_g_px = map(operator.sub, rp_g_px, self.subtargets[self.next_subtarget])
+        dist = math.hypot(v_g_px[0], v_g_px[1])
 
         ######################### NOTE: QUESTION  ##############################
         # What if a later subtarget or the end has been reached before the 
@@ -110,11 +123,11 @@ class Navigation:
         # Instead of checking only next sub-target check all remaining sub-targets (starting from end up to next
         # sub-target) and decide if robot is closer to another sub-target at later point in path
         for st_i in range(len(self.subtargets) - 1, self.next_subtarget - 1, -1):
+            # @v_st_g_px: Difference of Global coordinates in Pixels between robot's position
+            # and i-th" sub-target's position
             v_st_g_px = map(operator.sub, rp_g_px, self.subtargets[st_i])
-            v_st_g_px.__doc__ = "Difference of Global coordinates in Pixels between robot's position and i-th" \
-                                "sub-target's position"
             if math.hypot(v_st_g_px[0], v_st_g_px[1]) < 5:
-                # reached @ st_i, set next sub-target in path as robot's next sub-target
+                # reached @st_i, set next sub-target in path as robot's next sub-target
                 self.next_subtarget = st_i + 1
                 self.counter_to_next_sub = self.count_limit
                 if self.next_subtarget == len(self.subtargets):
@@ -263,12 +276,9 @@ class Navigation:
         # Publish the subtargets for visualization purposes
         subtargets_mark = []
         for s in self.subtargets:
-            st = self.robot_perception.toRelativeCoordinates(self.robot_perception.toMeterUnits(s, False), False)
-            # st = [
-            #     s[0] * self.robot_perception.resolution + self.robot_perception.origin['x'],
-            #     s[1] * self.robot_perception.resolution + self.robot_perception.origin['y']
-            # ]
-            subtargets_mark.append(st)
+            st_m = self.robot_perception.toMeterUnits(s, False)
+            st_m_r = self.robot_perception.toRelativeCoordinates(st_m, False)
+            subtargets_mark.append(st_m_r)
 
         RvizHandler.printMarker(
             subtargets_mark,
