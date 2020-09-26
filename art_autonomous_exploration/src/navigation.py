@@ -107,10 +107,12 @@ class Navigation:
         #     if self.next_subtarget == len(self.subtargets):
         #         self.target_exists = False
 
-        # Instead of checking only next sub-target check all remaining sub-targets and decide if robot is closer
-        # to another sub-target at later point in path
+        # Instead of checking only next sub-target check all remaining sub-targets (starting from end up to next
+        # sub-target) and decide if robot is closer to another sub-target at later point in path
         for st_i in range(len(self.subtargets) - 1, self.next_subtarget - 1, -1):
             v_st_g_px = map(operator.sub, rp_g_px, self.subtargets[st_i])
+            v_st_g_px.__doc__ = "Difference of Global coordinates in Pixels between robot's position and i-th" \
+                                "sub-target's position"
             if math.hypot(v_st_g_px[0], v_st_g_px[1]) < 5:
                 # reached @ st_i, set next sub-target in path as robot's next sub-target
                 self.next_subtarget = st_i + 1
